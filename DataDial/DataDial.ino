@@ -44,12 +44,12 @@ unsigned long targetTime;
 //Adjust these values to ensure each dial is zeroed
 //Use the values found in the ServoCalibration sketch.
 //Example:
-int zeroL=168;
-int zeroC=180;
-int zeroR=164;
-//int zeroL=180;
+//int zeroL=168;
 //int zeroC=180;
-//int zeroR=180;
+//int zeroR=164;
+int zeroL=180;
+int zeroC=180;
+int zeroR=180;
 
 //Servo pins Left, Center, Right
 int L = 5;
