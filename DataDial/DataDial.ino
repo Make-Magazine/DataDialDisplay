@@ -2,7 +2,8 @@
   DataDial was created by Matt Stultz for Make Magazine in November 2013.
   stultzm@gmail.com twitter @MattStultz
   
-  Thanks to Kelly Egan @kellyegan and Jonathan Speicher @jon_speicher for their help with the project.
+  Thanks to Kelly Egan @kellyegan for building the case and designing the dials for this 
+  and to my code guru for catching all my typos!
 
  The web code was based on the sketch:
   Web client

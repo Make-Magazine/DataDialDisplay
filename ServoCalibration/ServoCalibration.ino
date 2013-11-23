@@ -5,9 +5,9 @@ Servo sC;
 Servo sR;
 
 //Adjust these values to ensure your dials are on zero.
-int zeroL=168;
+int zeroL=180;
 int zeroC=180;
-int zeroR=164;
+int zeroR=180;
 
 void setup() {
   //Attaches to all servos and then moves them to each end of the dial.
