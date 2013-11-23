@@ -1,6 +1,8 @@
 /*
   DataDial was created by Matt Stultz for Make Magazine in November 2013.
   stultzm@gmail.com twitter @MattStultz
+  
+  Thanks to Kelly Egan @kellyegan and Jonathan Speicher @jon_speicher for their help with the project.
 
  The web code was based on the sketch:
   Web client
@@ -17,16 +19,14 @@
 #include <Servo.h>
 
 // Enter a MAC address for your controller below.
-// Newer Ethernet shields have a MAC address printed on a sticker on the shield
+// Newer Ethernet shields have a MAC address printed on a sticker on the shield.
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 char server[] = "earthquake.usgs.gov";    // name address for USGS Earthquake data (using DNS)
 
-// Set the static IP address to use if the DHCP fails to assign
+// Set the static IP address to use if the DHCP fails to assign an IP to your arduino.
 IPAddress ip(192,168,0,177);
 
-// Initialize the Ethernet client library
-// with the IP address and port of the server 
-// that you want to connect to (port 80 is default for HTTP):
+// Initialize the Ethernet client library.
 EthernetClient client;
 
 //Memory buffer
@@ -39,12 +39,17 @@ int weekCount = 0;
 float weekMag = 0.0;
 boolean bDay = true;
 float maxMag = 0.0;
-unsigned long time;
+unsigned long targetTime;
 
 //Adjust these values to ensure each dial is zeroed
-int zeroL=180;
+//Use the values found in the ServoCalibration sketch.
+//Example:
+int zeroL=168;
 int zeroC=180;
-int zeroR=180;
+int zeroR=164;
+//int zeroL=180;
+//int zeroC=180;
+//int zeroR=180;
 
 //Servo pins Left, Center, Right
 int L = 5;
@@ -76,16 +81,13 @@ void setup() {
   servoR.attach(R);
   
   //Set each servo to the far left position. Our servos are mounted upside down so we will start at 180.
-  servoL.write(180);
-  servoC.write(180); 
-  servoR.write(180);
-  
-  //delay(60000);
+  servoL.write(zeroL);
+  servoC.write(zeroC); 
+  servoR.write(zeroR);
  
   // start the Ethernet connection:
   if (Ethernet.begin(mac) == 0) {
     Serial.println("Failed to configure Ethernet using DHCP");
-    // no point in carrying on, so do nothing forevermore:
     // try to congifure using IP address instead of DHCP:
     Ethernet.begin(mac, ip);
   }
@@ -93,8 +95,9 @@ void setup() {
   delay(1000);
   Serial.println("connecting...");
 
-  //Set startup time.
-  time = millis();
+  //Set startup target time that is 24 hours later to reset Weekly magnitude counter.
+  //24 hours * 60 minutes * 60 seconds * 1000 miliseconds = 86400000
+  targetTime = millis() + 86400000;
 
 }
 
@@ -107,11 +110,12 @@ void loop()
     bDay= false;
     getData();
     
-    //check to see if 24 hours has passed since last update and reset the max magnatude.
-    if((millis()-time) >86400000)
+    //check to see if 24 hours has passed since last update and reset the max magnitue.
+    
+    if(millis() >= targetTime)
     {
       maxMag=0.0;
-      time = millis(); 
+      targetTime = millis() + 86400000;
     }
     
     //Wait 30 seconds and start looking again.
@@ -119,9 +123,9 @@ void loop()
 }
 
 void getData(){
-    // if you get a connection, report back via serial:
+  // if you get a connection, report back via serial:
   if (client.connect(server, 80)) {
-    //Serial.println("connected");
+    Serial.println("connected");
     // Make a HTTP request:
     if(bDay){
       client.println("GET http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson HTTP/1.0");
@@ -151,14 +155,12 @@ void getData(){
         if(!bJson){
           if(c=='{'){
             bJson = true;
-            //Serial.println("Found Json");
-            //Serial.println();
           }
         }
         //If Json data has been found begin handling it.
         if(bJson){
           //Check to make sure you haven't over filled the buffer.
-          if(bufIndex<=BUFFER_SIZE){
+          if(bufIndex<BUFFER_SIZE){
             //Write the recieved character to the memory buffer.
             buffer[bufIndex] = c;
             bufIndex++;
@@ -169,7 +171,7 @@ void getData(){
                   //Parse the day count data.
                   dayCount = getCount();
                   Serial.println(dayCount);
-                  //Remmeber you have the day data so you don't look for it again.
+                  //Remember you have the day data so you don't look for it again.
                   haveCount = true;
                   //Set the left servo into position based on the count found.
                   int outL = zeroL-(dayCount/dayMult);
